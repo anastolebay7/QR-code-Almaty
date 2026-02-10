@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Код Генераторы</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f5f5dc 0%, #e8dcc4 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: #fefef8;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(80, 130, 100, 0.15);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            border: 2px solid #d4c5a9;
+        }
+
+        h1 {
+            color: #2d5f3f;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6b8e6b;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2d5f3f;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #d4c5a9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            background-color: #fffef5;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #50c878;
+        }
+
+        input::placeholder {
+            color: #b8a586;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #50c878 0%, #3da35d 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(80, 200, 120, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .qr-result {
+            display: none;
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 2px solid #e8dcc4;
+        }
+
+        .qr-result.show {
+            display: block;
+        }
+
+        .qr-result h2 {
+            color: #2d5f3f;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        #qrcode {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(80, 130, 100, 0.1);
+        }
+
+        .user-info {
+            background: linear-gradient(135deg, #f5f5dc 0%, #ebe5d0 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+            text-align: left;
+            border: 1px solid #d4c5a9;
+        }
+
+        .user-info p {
+            margin: 10px 0;
+            color: #4a6b4a;
+            font-size: 14px;
+        }
+
+        .user-info strong {
+            color: #2d5f3f;
+        }
+
+        .back-button {
+            background: linear-gradient(135deg, #8b9d83 0%, #6b7d63 100%);
+            margin-top: 15px;
+        }
+
+        .back-button:hover {
+            background: linear-gradient(135deg, #7a8c73 0%, #5a6c53 100%);
+        }
+
+        .error {
+            border-color: #c85050 !important;
+        }
+
+        .error-message {
+            color: #c85050;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .limit-reached {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #f5f5dc 0%, #ebe5d0 100%);
+            border-radius: 12px;
+            border: 2px solid #d4c5a9;
+        }
+
+        .limit-reached h2 {
+            color: #2d5f3f;
+            margin-bottom: 15px;
+        }
+
+        .limit-reached p {
+            color: #6b8e6b;
+            font-size: 16px;
+        }
+
+        .counter {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: linear-gradient(135deg, #f5f5dc 0%, #ebe5d0 100%);
+            border-radius: 8px;
+            border: 1px solid #d4c5a9;
+        }
+
+        .counter p {
+            color: #2d5f3f;
+            font-size: 14px;
+            font​​​​​​​​​​​​​​​​

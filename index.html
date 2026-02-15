@@ -127,6 +127,10 @@
             box-shadow: 0 4px 15px rgba(80, 130, 100, 0.1);
         }
 
+        #qrcode canvas {
+            border-radius: 8px;
+        }
+
         .user-info {
             background: linear-gradient(135deg, #f5f5dc 0%, #ebe5d0 100%);
             padding: 20px;
@@ -196,4 +200,250 @@
         .counter p {
             color: #2d5f3f;
             font-size: 14px;
-            font​​​​​​​​​​​​​​​​
+            font-weight: 500;
+        }
+
+        .counter .count {
+            color: #50c878;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Код Генераторы</h1>
+        <p class="subtitle">Өзіңіздің бірегей QR кодыңызды жасау үшін ақпаратыңызды енгізіңіз</p>
+
+        <div class="counter" id="counter">
+            <p>Қалған орындар: <span class="count" id="remaining">1000</span> / 1000</p>
+        </div>
+
+        <form id="userForm">
+            <div class="form-group">
+                <label for="name">Толық аты-жөні *</label>
+                <input type="text" id="name" name="name" placeholder="Айдар Нұрланов" required>
+                <span class="error-message" id="nameError">Атыңызды енгізіңіз</span>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Электрондық пошта *</label>
+                <input type="email" id="email" name="email" placeholder="aidar@example.com" required>
+                <span class="error-message" id="emailError">Дұрыс электрондық поштаны енгізіңіз</span>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Телефон нөмірі *</label>
+                <input type="tel" id="phone" name="phone" placeholder="+7 (701) 123-45-67" required>
+                <span class="error-message" id="phoneError">Телефон нөміріңізді енгізіңіз</span>
+            </div>
+
+            <div class="form-group">
+                <label for="city">Қала *</label>
+                <input type="text" id="city" name="city" placeholder="Алматы" required>
+                <span class="error-message" id="cityError">Қалаңызды енгізіңіз</span>
+            </div>
+
+            <button type="submit" id="submitBtn">QR Код Жасау</button>
+        </form>
+
+        <div class="qr-result" id="qrResult">
+            <h2>Сіздің QR Кодыңыз</h2>
+            <div id="qrcode"></div>
+            <div class="user-info">
+                <p><strong>Аты-жөні:</strong> <span id="displayName"></span></p>
+                <p><strong>Электрондық пошта:</strong> <span id="displayEmail"></span></p>
+                <p><strong>Телефон:</strong> <span id="displayPhone"></span></p>
+                <p><strong>Қала:</strong> <span id="displayCity"></span></p>
+            </div>
+            <button class="back-button" onclick="resetForm()">Тағы Бір QR Код Жасау</button>
+        </div>
+    </div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    
+    <script>
+        // RESPONSE LIMIT SETTINGS
+        const MAX_RESPONSES = 1000;
+        const STORAGE_KEY = 'qr_response_count';
+
+        // Check if limit has been reached
+        function checkLimit() {
+            let count = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+            updateCounter(count);
+            
+            if (count >= MAX_RESPONSES) {
+                showLimitReached();
+                return false;
+            }
+            return true;
+        }
+
+        function incrementCounter() {
+            let count = parseInt(localStorage.getItem(STORAGE_KEY) || '0');
+            count++;
+            localStorage.setItem(STORAGE_KEY, count.toString());
+            updateCounter(count);
+        }
+
+        function updateCounter(count) {
+            const remaining = MAX_RESPONSES - count;
+            document.getElementById('remaining').textContent = remaining;
+        }
+
+        function showLimitReached() {
+            const container = document.querySelector('.container');
+            container.innerHTML = `
+                <div class="limit-reached">
+                    <h2>🎉 Шек толды!</h2>
+                    <p>Өкінішке орай, біз 1000 жауапқа жеттік.</p>
+                    <p>Қатысқаныңызға рахмет!</p>
+                </div>
+            `;
+        }
+
+        // Check limit on page load
+        window.addEventListener('load', function() {
+            checkLimit();
+        });
+
+        const form = document.getElementById('userForm');
+        const qrResult = document.getElementById('qrResult');
+        const qrcodeDiv = document.getElementById('qrcode');
+
+        // Simple QR code generation function
+        function generateQRCode(text) {
+            const typeNumber = 0;
+            const errorCorrectionLevel = 'H';
+            const qr = qrcode(typeNumber, errorCorrectionLevel);
+            qr.addData(text);
+            qr.make();
+            
+            const cellSize = 4;
+            const margin = 4;
+            const size = qr.getModuleCount() * cellSize + margin * 2;
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, size, size);
+            
+            // QR Code
+            ctx.fillStyle = '#2d5f3f';
+            for (let row = 0; row < qr.getModuleCount(); row++) {
+                for (let col = 0; col < qr.getModuleCount(); col++) {
+                    if (qr.isDark(row, col)) {
+                        ctx.fillRect(
+                            col * cellSize + margin,
+                            row * cellSize + margin,
+                            cellSize,
+                            cellSize
+                        );
+                    }
+                }
+            }
+            
+            return canvas;
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Check limit before processing
+            if (!checkLimit()) {
+                return;
+            }
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const city = document.getElementById('city').value.trim();
+
+            let isValid = true;
+
+            if (!name) {
+                showError('name');
+                isValid = false;
+            }
+
+            if (!email || !isValidEmail(email)) {
+                showError('email');
+                isValid = false;
+            }
+
+            if (!phone) {
+                showError('phone');
+                isValid = false;
+            }
+
+            if (!city) {
+                showError('city');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
+            // Increment the counter
+            incrementCounter();
+
+            const qrData = `Аты-жөні: ${name}\nЭлектрондық пошта: ${email}\nТелефон: ${phone}\nҚала: ${city}`;
+
+            qrcodeDiv.innerHTML = '';
+            const canvas = generateQRCode(qrData);
+            qrcodeDiv.appendChild(canvas);
+
+            document.getElementById('displayName').textContent = name;
+            document.getElementById('displayEmail').textContent = email;
+            document.getElementById('displayPhone').textContent = phone;
+            document.getElementById('displayCity').textContent = city;
+
+            qrResult.classList.add('show');
+            form.style.display = 'none';
+            document.getElementById('counter').style.display = 'none';
+        });
+
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        function showError(fieldName) {
+            const field = document.getElementById(fieldName);
+            const error = document.getElementById(fieldName + 'Error');
+            field.classList.add('error');
+            error.style.display = 'block';
+
+            field.addEventListener('input', function() {
+                field.classList.remove('error');
+                error.style.display = 'none';
+            });
+        }
+
+        function resetForm() {
+            form.reset();
+            form.style.display = 'block';
+            qrResult.classList.remove('show');
+            document.getElementById('counter').style.display = 'block';
+            
+            document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            
+            // Check limit again
+            checkLimit();
+        }
+
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', function() {
+                this.classList.remove('error');
+                const errorMsg = document.getElementById(this.id + 'Error');
+                if (errorMsg) errorMsg.style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
